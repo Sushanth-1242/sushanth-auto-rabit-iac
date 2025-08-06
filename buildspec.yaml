@@ -4,17 +4,16 @@ env:
   shell: bash
   variables:
     TF_APPLY_ACTION: "apply"
-    AWS_DEFAULT_REGION: us-east-1  # Change to your region
-    ECR_REPOSITORY_NAME: flask-devops-app
-    IMAGE_TAG: latest
+    AWS_DEFAULT_REGION: "us-east-1"
+    ECR_REPOSITORY_NAME: "flask/app"
+    IMAGE_TAG: "latest"
 
 phases:
   install:
     runtime-versions:
-      python: 3.9  # Changed from 3.13.5 as it might not be available
-      docker: 20   # Add Docker runtime
+      python: 3.9
+      docker: 20
     commands:
-      # Install Terraform
       - tf_version=$TERRAFORM_VERSION
       - wget https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
       - unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
@@ -24,69 +23,43 @@ phases:
 
   pre_build:
     commands:
-      # Verify AWS credentials
       - echo "Checking AWS credentials..."
       - aws sts get-caller-identity
-      
-      # Get ECR login token
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      
-      # Get AWS Account ID
       - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
       - IMAGE_URI=$ECR_REPOSITORY_URI:$IMAGE_TAG
       - echo "ECR Repository URI:" $ECR_REPOSITORY_URI
       - echo "Image URI:" $IMAGE_URI
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
   build:
     commands:
-      # Infrastructure Phase
       - echo "Starting Infrastructure Deployment..."
       - cd $CODEBUILD_SRC_DIR
-      
-      # Initialize Terraform
       - echo "Initializing Terraform..."
       - terraform init -backend-config=backend.tfvars -input=false
-      
-      # Plan Terraform changes
       - echo "Planning Terraform changes..."
       - terraform plan -var-file=dev.tfvars
-      
-      # Apply Terraform changes
       - echo "Applying Terraform changes..."
       - terraform $TF_APPLY_ACTION --auto-approve -var-file=dev.tfvars
-      
-      # Docker Build Phase
       - echo "Starting Docker build process..."
       - cd $CODEBUILD_SRC_DIR/flask-app
-      
-      # Build Docker image
       - echo "Building Docker image..."
       - docker build -t $ECR_REPOSITORY_NAME:$IMAGE_TAG .
-      - docker build -t $IMAGE_URI .
-      
-      # Tag image for ECR
       - echo "Tagging image for ECR..."
       - docker tag $ECR_REPOSITORY_NAME:$IMAGE_TAG $IMAGE_URI
 
   post_build:
     commands:
-      # Push image to ECR
       - echo "Pushing image to ECR..."
       - docker push $IMAGE_URI
-      
-      # Clean up local images to save space
       - echo "Cleaning up local images..."
       - docker rmi $ECR_REPOSITORY_NAME:$IMAGE_TAG || true
       - docker rmi $IMAGE_URI || true
-      
-      # Output important information
       - echo "Build completed successfully!"
       - echo "Infrastructure deployed via Terraform"
-      - echo "Docker image pushed to: $IMAGE_URI"
-      
-      # Optional: Save image URI for other stages
+      - echo "Docker image pushed to:" $IMAGE_URI
       - echo $IMAGE_URI > image_uri.txt
 
 artifacts:
