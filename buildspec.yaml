@@ -21,7 +21,8 @@ phases:
         do
           echo $resource >> resource_path.config
         done
-      - while read -r line;
+      - |
+        while read -r line;
         do
           echo $line
           if [ "$line" != "" ]; then
