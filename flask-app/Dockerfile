@@ -1,5 +1,5 @@
 # Use official Python runtime as base image
-FROM python:3.9-slim
+FROM public.ecr.aws/docker/library/python:3.9-slim
 
 # Set working directory in container
 WORKDIR /app
