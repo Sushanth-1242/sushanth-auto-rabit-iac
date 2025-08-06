@@ -19,18 +19,15 @@ phases:
       - |
         for resource in `cat resource.config`
         do
-        echo $resource >> resource_path.config
+          echo $resource >> resource_path.config
         done
       - while read -r line;
         do
           echo $line
           if [ "$line" != "" ]; then
-            cd "$CODEBUILD_SRC_DIR/$line"  # Looping through the folders under modules (or wherever your resources are)
-            
-            # Initialize Terraform with backend configuration from backend.tfvars
-            terraform init -backend-config=backend.tfvars -input=false 
-            
-            if [[ "$TF_APPLY_ACTION" == "destroy" && "$TF_ACTION" == "plan" ]]; then 
+            cd "$CODEBUILD_SRC_DIR/$line"  # Navigate to the module directory
+            terraform init -backend-config=backend.tfvars -input=false  # Initialize with backend config
+            if [[ "$TF_APPLY_ACTION" == "destroy" && "$TF_ACTION" == "plan" ]]; then
               terraform plan -destroy
             elif [[ "$TF_APPLY_ACTION" == "apply" && "$TF_ACTION" == "plan" ]]; then
               terraform plan
