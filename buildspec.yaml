@@ -12,30 +12,20 @@ phases:
       - wget https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
       - unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
       - mv terraform /usr/local/bin/
-  build:
+  pre_build:
     commands:
       - aws sts get-caller-identity
       - terraform --version
-      - |
-        for resource in `cat resource.config`
-        do
-          echo $resource >> resource_path.config
-        done
-      - |
-        while read -r line;
-        do
-          echo $line
-          if [ "$line" != "" ]; then
-            cd "$CODEBUILD_SRC_DIR/$line"  # Navigate to the module directory
-            terraform init -backend-config=backend.tfvars -input=false  # Initialize with backend config
-            if [[ "$TF_APPLY_ACTION" == "destroy" && "$TF_ACTION" == "plan" ]]; then
-              terraform plan -destroy
-            elif [[ "$TF_APPLY_ACTION" == "apply" && "$TF_ACTION" == "plan" ]]; then
-              terraform plan
-            else
-              terraform $TF_APPLY_ACTION --auto-approve
-            fi
-          else
-            echo "ResourcePath is empty in resource.config file"
-          fi
-        done < resource_path.config
+  build:
+    commands:
+      # Navigate to the root where main.tf is located
+      - cd $CODEBUILD_SRC_DIR
+
+      # Initialize Terraform with backend.tfvars and tfvars for passing variables
+      - terraform init -backend-config=backend.tfvars -input=false
+
+      # Run terraform plan to preview changes (with variables passed via tfvars)
+      - terraform plan -var-file=dev.tfvars
+
+      # Apply Terraform changes (with variables passed via tfvars)
+      - terraform $TF_APPLY_ACTION --auto-approve -var-file=dev.tfvars
