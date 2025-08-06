@@ -29,8 +29,13 @@ phases:
       - IMAGE_URI=$ECR_REPOSITORY_URI:$IMAGE_TAG
       - echo "ECR Repository URI:" $ECR_REPOSITORY_URI
       - echo "Image URI:" $IMAGE_URI
+      - echo "Logging in to Docker Hub to avoid rate limits..."
+      - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      # Optional: Login to Docker Hub to avoid rate limits (if you have credentials)
+      # - echo "Logging in to Docker Hub..."
+      # - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
 
   build:
     commands:
@@ -45,21 +50,23 @@ phases:
       - echo "Starting Docker build process..."
       - cd $CODEBUILD_SRC_DIR/flask-app
       - echo "Building Docker image..."
-      - docker build -t $ECR_REPOSITORY_NAME:$IMAGE_TAG .
+      - docker build -t $ECR_REPOSITORY_NAME:$IMAGE_TAG . || { echo "Docker build failed"; exit 1; }
       - echo "Tagging image for ECR..."
       - docker tag $ECR_REPOSITORY_NAME:$IMAGE_TAG $IMAGE_URI
 
   post_build:
     commands:
       - echo "Pushing image to ECR..."
-      - docker push $IMAGE_URI
+      - docker push $IMAGE_URI || { echo "Docker push failed"; exit 1; }
       - echo "Cleaning up local images..."
       - docker rmi $ECR_REPOSITORY_NAME:$IMAGE_TAG || true
       - docker rmi $IMAGE_URI || true
       - echo "Build completed successfully!"
       - echo "Infrastructure deployed via Terraform"
       - echo "Docker image pushed to:" $IMAGE_URI
+      - cd $CODEBUILD_SRC_DIR
       - echo $IMAGE_URI > image_uri.txt
+      - echo "Image URI saved to artifacts"
 
 artifacts:
   files:
