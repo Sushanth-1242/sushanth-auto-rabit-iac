@@ -5,14 +5,13 @@ env:
   variables:
     TF_APPLY_ACTION: "apply"
     AWS_DEFAULT_REGION: "us-east-1"
-    ECR_REPOSITORY_NAME: "flask/app"
+    ECR_REPOSITORY_NAME: "flask-devops-app"
     IMAGE_TAG: "latest"
 
 phases:
   install:
     runtime-versions:
       python: 3.9
-      docker: 20
     commands:
       - tf_version=$TERRAFORM_VERSION
       - wget https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
