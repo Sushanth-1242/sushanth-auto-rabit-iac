@@ -1,3 +1,25 @@
+# Declare the user_data local value to use in EC2 instances
+locals {
+  user_data = <<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y docker
+    systemctl start docker
+    systemctl enable docker
+    usermod -a -G docker ec2-user
+    
+    # Install AWS CLI
+    yum install -y aws-cli
+    
+    # Login to ECR and pull your Flask app
+    aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
+    
+    # Pull and run your Flask app
+    docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/flask/app:latest
+    docker run -d -p 80:5000 --name flask-app --restart unless-stopped ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/flask/app:latest
+  EOF
+}
+
 module "vpc" {
   source = "./modules/VPC"
   subnet_tags         = var.subnet_tags
@@ -146,7 +168,7 @@ module "application_load_balancer" {
   ami_id              = var.ami_id  # Use your existing AMI
   instance_type       = var.instance_type  # Use your existing instance type
   key_name            = var.key_name  # Use your existing key name
-  user_data           = local.user_data
+  user_data           = local.user_data  # Reference to the user_data local variable
 
   # ASG Sizing
   asg_min_size         = 2
