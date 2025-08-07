@@ -134,6 +134,9 @@ resource "aws_launch_template" "main" {
   instance_type = var.instance_type
   key_name      = var.key_name
 
+  iam_instance_profile {
+    name = module.iam.instance_profile.name  # Reference IAM instance profile from IAM module
+  }
   vpc_security_group_ids = [aws_security_group.ec2.id]
 
   # Removed the user_data field as CodeDeploy will handle the app deployment
