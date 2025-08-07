@@ -135,7 +135,7 @@ resource "aws_launch_template" "main" {
   key_name      = var.key_name
 
   iam_instance_profile {
-    name = module.iam.instance_profile.name  # Reference IAM instance profile from IAM module
+    name = var.instance_profile  # Reference IAM instance profile from IAM module
   }
   vpc_security_group_ids = [aws_security_group.ec2.id]
 
