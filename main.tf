@@ -26,7 +26,7 @@ module "application_load_balancer" {
   listener_port     = 80
   listener_protocol = "HTTP"
 
-  # ASG Configuration
+  # Auto Scaling Group Configuration
   asg_name            = "${var.aws_region}-${var.environment}-asg-01"
   ami_id              = var.ami_id
   instance_type       = var.instance_type
@@ -46,11 +46,12 @@ module "application_load_balancer" {
   scale_down_cpu_threshold    = 30
 
   # Connect ASG with Target Group automatically
-  target_group_arns = [aws_lb_target_group.main.arn]
-
+  # Removed `existing_instance_ids`, as the ASG will manage the instances.
+  
   # Tags
   tags = var.tags
 }
+
 
 
 module "vpc" {
