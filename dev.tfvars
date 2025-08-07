@@ -19,16 +19,14 @@ subnet_tags = {
   Project     = "MyApp"
 }
 
-############################# EC2 ################################
 ami_id               = "ami-084a7d336e816906b"
 instance_type        = "t3.micro"
 key_name             = "auto-rebit-poc"
 
-############################# ALB Configuration ################################
-alb_name             = "${var.aws_region}-${var.environment}-alb-01"
-alb_target_group_name = "${var.aws_region}-${var.environment}-tg-01"
+# ALB Configuration - Replace dynamic references with static values
+alb_name             = "us-east-1-dev-alb-01"
+alb_target_group_name = "us-east-1-dev-tg-01"
 alb_listener_port    = 80
-alb_listener_protocol = "HTTP"
 alb_health_check_path = "/"
 alb_health_check_interval = 30
 alb_health_check_timeout = 5
@@ -37,7 +35,7 @@ alb_health_check_unhealthy_threshold = 2
 alb_health_check_matcher = "200"
 
 # Auto Scaling Group Configuration for ALB
-asg_name            = "${var.aws_region}-${var.environment}-asg-01"
+asg_name            = "us-east-1-dev-asg-01"
 asg_min_size        = 2
 asg_max_size        = 4
 asg_desired_capacity = 2
@@ -52,9 +50,3 @@ existing_instance_ids = [
   module.Frontend_vm.instance_id,
   module.backend_vm.instance_id
 ]
-
-############################# Other Parameters ################################
-subnet_ids          = [module.vpc.public_subnet_id]
-private_subnet_ids  = [module.vpc.private_subnet_1_id, module.vpc.private_subnet_2_id]
-public_subnet_ids   = [module.vpc.public_subnet_id]
-
