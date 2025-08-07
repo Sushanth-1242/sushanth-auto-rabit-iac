@@ -9,7 +9,7 @@ module "application_load_balancer" {
   vpc_id                 = module.vpc.vpc_id
   public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]
   private_subnet_ids     = [module.vpc.private_subnet_1_id]  # Updated with the correct VPC module
-
+  instance_profile       = module.iam.instance_profile.name
   enable_deletion_protection = false
 
   # Target Group Configuration
