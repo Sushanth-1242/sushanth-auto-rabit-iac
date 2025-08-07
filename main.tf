@@ -1,3 +1,6 @@
+module "iam" {
+  source = "./modules/IAM"
+}
 module "application_load_balancer" {
   source = "./modules/ALB"
 
