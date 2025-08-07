@@ -8,7 +8,7 @@ output "public_subnet_id" {
   value       = aws_subnet.public_subnet_01.id
 }
 
-output "private_subnet_1_id" {
+output "public_subnet_2_id" {
   description = "The ID of the private subnet 1"
   value       = aws_subnet.public_subnet_02.id
 }
