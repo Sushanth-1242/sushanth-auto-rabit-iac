@@ -101,28 +101,27 @@ module "security_groups" {
   }
 }
 
-module "Frontend_vm" {
-  source = "./modules/EC2"
-   
-  security_group_ids = [module.security_groups.security_group_ids[0]]
-  instance_name = "frontend-${var.aws_region}-${var.environment}-ec2-01"
-  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
-  key_name = var.key_name
-  instance_type = var.instance_type
-  ami_id = var.ami_id
-}
+#module "Frontend_vm" {
+#  source = "./modules/EC2"
+#   
+# security_group_ids = [module.security_groups.security_group_ids[0]]
+#  instance_name = "frontend-${var.aws_region}-${var.environment}-ec2-01"
+#  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
+#  key_name = var.key_name
+# instance_type = var.instance_type
+#  ami_id = var.ami_id
+#}
 
-module "backend_vm" {
-  source = "./modules/EC2"
-   
-  security_group_ids = [module.security_groups.security_group_ids[1]]
-  instance_name = "backend-${var.aws_region}-${var.environment}-ec2-01"
-  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
-  key_name = var.key_name
-  instance_type = var.instance_type
-  ami_id = var.ami_id
-  ebs_size = 20
-}
+#module "backend_vm" {
+#  source = "./modules/EC2"
+# security_group_ids = [module.security_groups.security_group_ids[1]]
+#  instance_name = "backend-${var.aws_region}-${var.environment}-ec2-01"
+#  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
+#  key_name = var.key_name
+#  instance_type = var.instance_type
+#  ami_id = var.ami_id
+#  ebs_size = 20
+#}
 
 module "internet_gateway" {
   source = "./modules/IGW"
