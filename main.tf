@@ -5,7 +5,7 @@ module "application_load_balancer" {
   alb_name               = "${var.aws_region}-${var.environment}-alb-01"
   vpc_id                 = module.vpc.vpc_id
   public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to your public subnets
-  private_subnet_ids     = []  # No need for private subnets for ALB
+  private_subnet_ids     = [modue.vpc.private_subnet_1_id]  # No need for private subnets for ALB
 
   enable_deletion_protection = false
 
