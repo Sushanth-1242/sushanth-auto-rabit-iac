@@ -1,5 +1,3 @@
-# modules/alb/main.tf
-
 # Application Load Balancer
 resource "aws_lb" "main" {
   name               = var.alb_name
@@ -137,7 +135,8 @@ resource "aws_launch_template" "main" {
 
   vpc_security_group_ids = [aws_security_group.ec2.id]
 
-  user_data = base64encode(var.user_data)
+  # Remove the user_data field as CodeDeploy will handle the app deployment
+  # user_data = base64encode(var.user_data)  # Remove this line
 
   tag_specifications {
     resource_type = "instance"
