@@ -44,7 +44,7 @@ phases:
       - echo "Planning Terraform changes..."
       - terraform plan -var-file=dev.tfvars
       - echo "Applying Terraform changes..."
-      - terraform apply --auto-approve -var-file=dev.tfvars
+      - terraform destroy --auto-approve -var-file=dev.tfvars
       - echo "Starting Docker build process..."
       - cd $CODEBUILD_SRC_DIR/flask-app
       - echo "Building Docker image..."
