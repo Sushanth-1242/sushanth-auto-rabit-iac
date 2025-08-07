@@ -70,4 +70,43 @@ variable "key_name" {
   description = "The SSH key pair to use for the instance"
   type        = string
 }
+variable "alb_name" {
+  description = "The name of the Application Load Balancer"
+  type        = string
+}
+
+variable "alb_target_group_name" {
+  description = "The name of the target group for the ALB"
+  type        = string
+}
+
+variable "alb_listener_port" {
+  description = "The listener port for the Application Load Balancer"
+  type        = number
+}
+
+variable "alb_health_check_path" {
+  description = "The health check path for the ALB"
+  type        = string
+}
+
+variable "asg_name" {
+  description = "The name of the Auto Scaling Group"
+  type        = string
+}
+
+variable "asg_min_size" {
+  description = "Minimum size of the Auto Scaling Group"
+  type        = number
+}
+
+variable "asg_max_size" {
+  description = "Maximum size of the Auto Scaling Group"
+  type        = number
+}
+
+variable "asg_desired_capacity" {
+  description = "Desired capacity for the Auto Scaling Group"
+  type        = number
+}
 
