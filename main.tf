@@ -5,7 +5,7 @@ module "application_load_balancer" {
   alb_name               = "${var.aws_region}-${var.environment}-alb-01"
   vpc_id                 = module.vpc.vpc_id
   public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]
-  private_subnet_ids     = [module.vpc.private_subnet_1_id]
+  private_subnet_ids     = [module.vpc.private_subnet_1_id]  # Updated with the correct VPC module
 
   enable_deletion_protection = false
 
@@ -32,6 +32,7 @@ module "application_load_balancer" {
   instance_type       = var.instance_type
   key_name            = var.key_name
 
+  # ASG Sizing
   asg_min_size         = 2
   asg_max_size         = 4
   asg_desired_capacity = 2
@@ -45,12 +46,10 @@ module "application_load_balancer" {
   scale_up_cpu_threshold      = 70
   scale_down_cpu_threshold    = 30
 
-  # Connect ASG with Target Group automatically
-  # Removed `existing_instance_ids`, as the ASG will manage the instances.
-  
   # Tags
   tags = var.tags
 }
+
 
 
 
