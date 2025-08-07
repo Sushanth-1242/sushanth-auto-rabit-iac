@@ -155,7 +155,7 @@ data "aws_caller_identity" "current" {}
 
 # ALB Module Usage (aligned with your existing setup)
 module "application_load_balancer" {
-  source = "./modules/alb"
+  source = "./modules/ALB"
 
   # ALB Configuration - aligned with your naming convention
   alb_name               = "${var.aws_region}-${var.environment}-alb-01"
