@@ -29,8 +29,8 @@ module "route_tables" {
   source = "./modules/RouteTable"
 
   vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = [module.vpc.public_subnet_id]  # Reference to public subnet IDs
-  private_subnet_ids  = [module.vpc.private_subnet_1_id, module.vpc.private_subnet_2_id]  # Reference to private subnet IDs
+  public_subnet_ids   = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to public subnet IDs
+  private_subnet_ids  = [module.vpc.private_subnet_1_id]  # Reference to private subnet IDs
   internet_gateway_id = module.internet_gateway.internet_gateway_id
   nat_gateway_id      = module.nat_gateway.nat_gateway_id
   route_table_tags    = var.route_table_tags
