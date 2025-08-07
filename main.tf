@@ -151,7 +151,7 @@ module "application_load_balancer" {
   ami_id              = var.ami_id  # Use your existing AMI
   instance_type       = var.instance_type  # Use your existing instance type
   key_name            = var.key_name  # Use your existing key name
-  user_data           = local.user_data  # Reference to the user_data local variable
+  # Removed the reference to user_data here as we don't need it anymore
 
   # ASG Sizing
   asg_min_size         = 2
