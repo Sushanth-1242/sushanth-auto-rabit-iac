@@ -20,7 +20,7 @@ resource "aws_subnet" "public_subnet_02" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_blocks[1]  # Private Subnet 1 CIDR block
   availability_zone       = var.azs[1]
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags                    = merge(var.subnet_tags, { Name = "${var.vpc_name}-public-subnet-02" })
 }
 
