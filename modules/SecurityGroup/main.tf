@@ -1,11 +1,10 @@
 resource "aws_security_group" "sg" {
-  for_each = { for idx, rule in var.egress_rules : idx => rule }
+  for_each = toset(var.sg_name_prefix)
 
-  name_prefix = "${var.sg_name_prefix[each.key]}-sg"
-  description = "Security group for ${var.sg_name_prefix[each.key]}"
+  name_prefix = each.key
+  description = "Security group for EC2 instances"
   vpc_id      = var.vpc_id
 
-  # HTTP access from anywhere
   ingress {
     description = "HTTP"
     from_port   = 80
@@ -14,23 +13,19 @@ resource "aws_security_group" "sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Optional: Using the egress rules defined in the variable
-  dynamic "egress" {
-    for_each = each.value
-    content {
-      description = "All outbound traffic"
-      from_port   = egress.value.from_port
-      to_port     = egress.value.to_port
-      protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
-    }
+  egress {
+    description = "All outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.tags, {
-    Name = "${var.sg_name_prefix[each.key]}-sg"
-  })
+  tags = var.tags
+}
 
-  lifecycle {
-    create_before_destroy = true
-  }
+# Output the security group IDs
+output "security_group_ids" {
+  description = "List of Security Group IDs"
+  value = [for sg in aws_security_group.sg : sg.id]
 }
