@@ -21,7 +21,7 @@ resource "aws_subnet" "private_subnet_1" {
   cidr_block              = var.subnet_cidr_blocks[1]  # Private Subnet 1 CIDR block
   availability_zone       = var.azs[1]
   map_public_ip_on_launch = false
-  tags                    = merge(var.subnet_tags, { Name = "${var.vpc_name}-private-subnet-01" })
+  tags                    = merge(var.subnet_tags, { Name = "${var.vpc_name}-public-subnet-02" })
 }
 
 # Private Subnet 2
