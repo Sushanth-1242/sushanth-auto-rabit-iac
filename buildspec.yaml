@@ -41,10 +41,9 @@ phases:
       - cd $CODEBUILD_SRC_DIR
       - echo "Initializing Terraform..."
       - terraform init -backend-config=backend.tfvars -input=false
-      - echo "Planning Terraform changes..."
-      - terraform plan -var-file=dev.tfvars
-      - echo "Applying Terraform changes..."
-      - terraform destroy --auto-approve -var-file=dev.tfvars
+      - echo "Running Terraform changes..."
+      - terraform $TERRAFORM_ACTION --auto-approve -var-file=dev.tfvars
+      - echo "Terraform changes completed successfully!"
       - echo "Starting Docker build process..."
       - cd $CODEBUILD_SRC_DIR/flask-app
       - echo "Building Docker image..."
