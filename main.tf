@@ -1,7 +1,7 @@
 module "vpc" {
   source = "./modules/VPC"
   subnet_tags         = var.subnet_tags
-  vpc_name            = "${var.aws_region}-${var.environment}-vpc-01"  # Example naming
+  vpc_name            = "${var.aws_region}-${var.environment}-vpc-01"
   cidr_block          = var.vpc_cidr_block
   azs                 = var.azs
   subnet_cidr_blocks  = var.subnet_cidr_blocks  # Three CIDR blocks for 1 public and 2 private subnets
@@ -29,8 +29,8 @@ module "route_tables" {
   source = "./modules/RouteTable"
 
   vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = [module.vpc.public_subnet_id]
-  private_subnet_ids  = [module.vpc.private_subnet_1_id,module.vpc.private_subnet_2_id]
+  public_subnet_ids   = [module.vpc.public_subnet_id]  # Reference to public subnet IDs
+  private_subnet_ids  = [module.vpc.private_subnet_1_id, module.vpc.private_subnet_2_id]  # Reference to private subnet IDs
   internet_gateway_id = module.internet_gateway.internet_gateway_id
   nat_gateway_id      = module.nat_gateway.nat_gateway_id
   route_table_tags    = var.route_table_tags
@@ -94,7 +94,7 @@ module "Frontend_vm" {
   instance_name = "frontend-${var.aws_region}-${var.environment}-ec2-01"
   subnet_id = module.vpc.public_subnet_id
   key_name = var.key_name
-  instance_type =var.instance_type
+  instance_type = var.instance_type
   ami_id = var.ami_id
 }
 
@@ -105,63 +105,20 @@ module "backend_vm" {
   instance_name = "backend-${var.aws_region}-${var.environment}-ec2-01"
   subnet_id = module.vpc.public_subnet_id
   key_name = var.key_name
-  instance_type =var.instance_type
+  instance_type = var.instance_type
   ami_id = var.ami_id
   ebs_size = 20
 }
-output "vpc_id" {
-  value = module.vpc.vpc_id
-}
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-# User data script for EC2 instances to run your Flask app
-locals {
-  user_data = <<-EOF
-    #!/bin/bash
-    yum update -y
-    yum install -y docker
-    systemctl start docker
-    systemctl enable docker
-    usermod -a -G docker ec2-user
-    
-    # Install AWS CLI
-    yum install -y aws-cli
-    
-    # Login to ECR and pull your Flask app
-    aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
-    
-    # Pull and run your Flask app
-    docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/flask/app:latest
-    docker run -d -p 80:5000 --name flask-app --restart unless-stopped ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/flask/app:latest
-  EOF
-}
-
-# Get current AWS account ID
-data "aws_caller_identity" "current" {}
-
-# ALB Module Usage (aligned with your existing setup)
 module "application_load_balancer" {
   source = "./modules/ALB"
 
   # ALB Configuration - aligned with your naming convention
   alb_name               = "${var.aws_region}-${var.environment}-alb-01"
   vpc_id                 = module.vpc.vpc_id
-  public_subnet_ids      = [module.vpc.public_subnet_id]  # Using your single public subnet
-  private_subnet_ids     = [module.vpc.private_subnet_1_id, module.vpc.private_subnet_2_id]  # Using your private subnets
+  public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to your public subnets
+  private_subnet_ids     = []  # No need for private subnets for ALB
+
   enable_deletion_protection = false
 
   # Target Group Configuration
@@ -216,7 +173,7 @@ module "application_load_balancer" {
   tags = var.tags
 }
 
-# Add these outputs to your existing outputs section
+# Output definitions as before
 output "alb_dns_name" {
   description = "DNS name of the Application Load Balancer"
   value       = module.application_load_balancer.alb_dns_name
@@ -236,25 +193,11 @@ output "asg_name" {
   description = "Name of the Auto Scaling Group"
   value       = module.application_load_balancer.asg_name
 }
-output "internet_gateway_id" {
-  value = module.internet_gateway.internet_gateway_id
-}
-
-output "nat_gateway_id" {
-  value = module.nat_gateway.nat_gateway_id
-}
-
-output "public_route_table_id" {
-  value = module.route_tables.public_route_table_id
-}
-
-output "private_route_table_id" {
-  value = module.route_tables.private_route_table_id
-}
 
 output "Backend_vm_ip" {
   value = module.backend_vm.instance_public_ip
 }
+
 output "Frontend_vm_ip" {
   value = module.Frontend_vm.instance_public_ip
 }
