@@ -5,7 +5,10 @@ variable "alb_name" {
   description = "Name of the Application Load Balancer"
   type        = string
 }
-
+variable "instance_profile" {
+  description = "Name of the instance_profile"
+  type        = string
+}
 variable "vpc_id" {
   description = "VPC ID where ALB will be created"
   type        = string
