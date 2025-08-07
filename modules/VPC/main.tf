@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
 }
 
 # Public Subnet
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_01" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_blocks[0]  # Public Subnet CIDR block
   availability_zone       = var.azs[0]
@@ -16,7 +16,7 @@ resource "aws_subnet" "public_subnet" {
 }
 
 # Private Subnet 1
-resource "aws_subnet" "private_subnet_1" {
+resource "aws_subnet" "public_subnet_02" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_blocks[1]  # Private Subnet 1 CIDR block
   availability_zone       = var.azs[1]
@@ -25,7 +25,7 @@ resource "aws_subnet" "private_subnet_1" {
 }
 
 # Private Subnet 2
-resource "aws_subnet" "private_subnet_2" {
+resource "aws_subnet" "private_subnet_1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_blocks[2]  # Private Subnet 2 CIDR block
   availability_zone       = var.azs[1]
