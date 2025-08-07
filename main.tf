@@ -1,11 +1,11 @@
 module "application_load_balancer" {
   source = "./modules/ALB"
 
-  # ALB Configuration - aligned with your naming convention
+  # ALB Configuration
   alb_name               = "${var.aws_region}-${var.environment}-alb-01"
   vpc_id                 = module.vpc.vpc_id
-  public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to your public subnets
-  private_subnet_ids     = [module.vpc.private_subnet_1_id]  # No need for private subnets for ALB
+  public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]
+  private_subnet_ids     = [module.vpc.private_subnet_1_id]
 
   enable_deletion_protection = false
 
@@ -22,43 +22,36 @@ module "application_load_balancer" {
   health_check_unhealthy_threshold = 2
   health_check_matcher            = "200"
 
-  # Listener Configuration (HTTP only as requested)
+  # Listener Configuration
   listener_port     = 80
   listener_protocol = "HTTP"
 
-  # No HTTPS configuration as per your request
-  certificate_arn = null
-
-  # Auto Scaling Group Configuration - aligned with your naming
+  # ASG Configuration
   asg_name            = "${var.aws_region}-${var.environment}-asg-01"
-  ami_id              = var.ami_id  # Use your existing AMI
-  instance_type       = var.instance_type  # Use your existing instance type
-  key_name            = var.key_name  # Use your existing key name
+  ami_id              = var.ami_id
+  instance_type       = var.instance_type
+  key_name            = var.key_name
 
-  # ASG Sizing
   asg_min_size         = 2
   asg_max_size         = 4
   asg_desired_capacity = 2
   health_check_grace_period = 300
 
-  # Security Configuration
   allow_ssh        = true
-  ssh_cidr_blocks  = ["0.0.0.0/0"]  # Matches your current SG config
+  ssh_cidr_blocks  = ["0.0.0.0/0"]
 
   # Auto Scaling Policies
   enable_auto_scaling_policies = true
   scale_up_cpu_threshold      = 70
   scale_down_cpu_threshold    = 30
 
-  # Attach your existing EC2 instances to the target group
-  existing_instance_ids = [
-    module.Frontend_vm.instance_id,
-    module.backend_vm.instance_id
-  ]
+  # Connect ASG with Target Group automatically
+  target_group_arns = [aws_lb_target_group.main.arn]
 
-  # Tags - aligned with your existing tags
+  # Tags
   tags = var.tags
 }
+
 
 module "vpc" {
   source = "./modules/VPC"
