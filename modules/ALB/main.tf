@@ -6,7 +6,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
+  subnets            = length(var.public_subnet_ids) >= 2 ? var.public_subnet_ids : concat(var.public_subnet_ids, var.private_subnet_ids)
 
   enable_deletion_protection = var.enable_deletion_protection
 
