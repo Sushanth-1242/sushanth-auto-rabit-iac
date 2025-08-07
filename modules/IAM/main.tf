@@ -37,3 +37,6 @@ resource "aws_iam_instance_profile" "instance_profile" {
   name = "ec2-code-deploy-instance-profile"
   role = aws_iam_role.code_deploy_role.name
 }
+output "instance_profile" {
+  value = aws_iam_instance_profile.instance_profile
+}
