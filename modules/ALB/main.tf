@@ -208,7 +208,7 @@ resource "aws_security_group" "ec2" {
 # Auto Scaling Group
 resource "aws_autoscaling_group" "main" {
   name                = var.asg_name
-  vpc_zone_identifier = module.vpc.private_subnet_ids  # Use private subnets
+  vpc_zone_identifier = var.private_subnet_ids  # Use private subnets
   target_group_arns   = [aws_lb_target_group.main.arn]  # Ensure it’s connected to the ALB target group
   health_check_type   = "ELB"
   health_check_grace_period = var.health_check_grace_period
