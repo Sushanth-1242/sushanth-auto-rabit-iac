@@ -1,120 +1,3 @@
-# Declare the user_data local value to use in EC2 instances
-locals {
-
-}
-
-module "vpc" {
-  source = "./modules/VPC"
-  subnet_tags         = var.subnet_tags
-  vpc_name            = "${var.aws_region}-${var.environment}-vpc-01"
-  cidr_block          = var.vpc_cidr_block
-  azs                 = var.azs
-  subnet_cidr_blocks  = var.subnet_cidr_blocks  # Three CIDR blocks for 1 public and 2 private subnets
-  vpc_tags            = var.tags
-}
-
-module "internet_gateway" {
-  source = "./modules/IGW"
-
-  vpc_id             = module.vpc.vpc_id
-  internet_gateway_name = "${var.aws_region}-${var.environment}-igw-01"
-  igw_tags           = var.tags
-}
-
-module "nat_gateway" {
-  source = "./modules/NAT"
-
-  vpc_id             = module.vpc.vpc_id
-  subnet_id          = module.vpc.public_subnet_id # Public subnet for NAT
-  nat_gateway_name   = "${var.aws_region}-${var.environment}-nat-01"
-  nat_gateway_tags   = var.tags
-}
-
-module "route_tables" {
-  source = "./modules/RouteTable"
-
-  vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to public subnet IDs
-  private_subnet_ids  = [module.vpc.private_subnet_1_id]  # Reference to private subnet IDs
-  internet_gateway_id = module.internet_gateway.internet_gateway_id
-  nat_gateway_id      = module.nat_gateway.nat_gateway_id
-  route_table_tags    = var.route_table_tags
-}
-
-module "security_groups" {
-  source          = "./modules/SecurityGroup"
-  vpc_id          = module.vpc.vpc_id
-  sg_name_prefix  = ["bia-Frontend-web-SG-prod-01",  "Bia-backend-SG-01-Prod-01"]
-
-  ingress_rules = [
-    # First Security Group (custom rules)
-    [
-      { from_port = 8081, to_port = 8081, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 8081, to_port = 8081, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 80, to_port = 80, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 22, to_port = 22, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 80, to_port = 80, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] }
-    ],
-    # Second Security Group (custom rules)
-    [
-      { from_port = 8000, to_port = 8000, protocol = "tcp", cidr_blocks = ["10.1.0.78/32"] },
-      { from_port = 8761, to_port = 8761, protocol = "tcp", cidr_blocks = ["10.2.2.252/32"] },
-      { from_port = 22, to_port = 22, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
-      { from_port = 8000, to_port = 8000, protocol = "tcp", cidr_blocks = ["10.0.0.0/16"] }
-    ]
-  ]
-
-  egress_rules = [
-    # First Security Group (custom rules)
-    [
-      { from_port = 0, to_port = 0, protocol = "-1", cidr_blocks = ["0.0.0.0/0"] }
-    ],
-    # Second Security Group (custom rules)
-    [
-      { from_port = 0, to_port = 0, protocol = "-1", cidr_blocks = ["0.0.0.0/0"] }
-    ],
-    # Third Security Group (custom rules)
-    [
-      { from_port = 0, to_port = 0, protocol = "-1", cidr_blocks = ["0.0.0.0/0"] }
-    ],
-    # Fourth Security Group (custom rules)
-    [
-      { from_port = 0, to_port = 0, protocol = "-1", cidr_blocks = ["0.0.0.0/0"] }
-    ]
-  ]
-
-  tags = {
-    Environment = "Production"
-    Project     = "BIA"
-  }
-
-}
-
-module "Frontend_vm" {
-  source = "./modules/EC2"
-   
-  security_group_ids = [module.security_groups.security_group_ids[0]]
-  instance_name = "frontend-${var.aws_region}-${var.environment}-ec2-01"
-  subnet_id = module.vpc.public_subnet_id
-  key_name = var.key_name
-  instance_type = var.instance_type
-  ami_id = var.ami_id
-}
-
-module "backend_vm" {
-  source = "./modules/EC2"
-   
-  security_group_ids = [module.security_groups.security_group_ids[1]]
-  instance_name = "backend-${var.aws_region}-${var.environment}-ec2-01"
-  subnet_id = module.vpc.public_subnet_id
-  key_name = var.key_name
-  instance_type = var.instance_type
-  ami_id = var.ami_id
-  ebs_size = 20
-}
-
 module "application_load_balancer" {
   source = "./modules/ALB"
 
@@ -151,7 +34,6 @@ module "application_load_balancer" {
   ami_id              = var.ami_id  # Use your existing AMI
   instance_type       = var.instance_type  # Use your existing instance type
   key_name            = var.key_name  # Use your existing key name
-  # Removed the reference to user_data here as we don't need it anymore
 
   # ASG Sizing
   asg_min_size         = 2
@@ -178,31 +60,91 @@ module "application_load_balancer" {
   tags = var.tags
 }
 
-# Output definitions as before
-output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
-  value       = module.application_load_balancer.alb_dns_name
+module "vpc" {
+  source = "./modules/VPC"
+  subnet_tags         = var.subnet_tags
+  vpc_name            = "${var.aws_region}-${var.environment}-vpc-01"
+  cidr_block          = var.vpc_cidr_block
+  azs                 = var.azs
+  subnet_cidr_blocks  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]  # Ensure these CIDRs don't overlap
+  vpc_tags            = var.tags
 }
 
-output "flask_application_url" {
-  description = "URL to access the Flask application through ALB"
-  value       = module.application_load_balancer.application_url
+module "security_groups" {
+  source          = "./modules/SecurityGroup"
+  vpc_id          = module.vpc.vpc_id
+  sg_name_prefix  = ["bia-Frontend-web-SG-prod-01", "Bia-backend-SG-01-Prod-01"]
+
+  ingress_rules = [
+    [
+      { from_port = 8081, to_port = 8081, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
+      { from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
+      { from_port = 8081, to_port = 8081, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
+      { from_port = 80, to_port = 80, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
+      { from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
+      { from_port = 22, to_port = 22, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] }
+    ],
+    [
+      { from_port = 8000, to_port = 8000, protocol = "tcp", cidr_blocks = ["10.1.0.78/32"] },
+      { from_port = 8761, to_port = 8761, protocol = "tcp", cidr_blocks = ["10.2.2.252/32"] },
+      { from_port = 22, to_port = 22, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] }
+    ]
+  ]
+  egress_rules = [
+    [
+      { from_port = 0, to_port = 0, protocol = "-1", cidr_blocks = ["0.0.0.0/0"] }
+    ]
+  ]
+  tags = {
+    Environment = "Production"
+    Project     = "BIA"
+  }
 }
 
-output "target_group_arn" {
-  description = "ARN of the target group"
-  value       = module.application_load_balancer.target_group_arn
+module "Frontend_vm" {
+  source = "./modules/EC2"
+   
+  security_group_ids = [module.security_groups.security_group_ids[0]]
+  instance_name = "frontend-${var.aws_region}-${var.environment}-ec2-01"
+  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
+  key_name = var.key_name
+  instance_type = var.instance_type
+  ami_id = var.ami_id
 }
 
-output "asg_name" {
-  description = "Name of the Auto Scaling Group"
-  value       = module.application_load_balancer.asg_name
+module "backend_vm" {
+  source = "./modules/EC2"
+   
+  security_group_ids = [module.security_groups.security_group_ids[1]]
+  instance_name = "backend-${var.aws_region}-${var.environment}-ec2-01"
+  subnet_id = module.vpc.private_subnet_1_id  # Changed to private subnet
+  key_name = var.key_name
+  instance_type = var.instance_type
+  ami_id = var.ami_id
+  ebs_size = 20
 }
 
-output "Backend_vm_ip" {
-  value = module.backend_vm.instance_public_ip
+module "internet_gateway" {
+  source = "./modules/IGW"
+  vpc_id             = module.vpc.vpc_id
+  internet_gateway_name = "${var.aws_region}-${var.environment}-igw-01"
+  igw_tags           = var.tags
 }
 
-output "Frontend_vm_ip" {
-  value = module.Frontend_vm.instance_public_ip
+module "nat_gateway" {
+  source = "./modules/NAT"
+  vpc_id             = module.vpc.vpc_id
+  subnet_id          = module.vpc.public_subnet_id # Public subnet for NAT
+  nat_gateway_name   = "${var.aws_region}-${var.environment}-nat-01"
+  nat_gateway_tags   = var.tags
+}
+
+module "route_tables" {
+  source = "./modules/RouteTable"
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_ids   = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to public subnet IDs
+  private_subnet_ids  = [module.vpc.private_subnet_1_id]  # Reference to private subnet IDs
+  internet_gateway_id = module.internet_gateway.internet_gateway_id
+  nat_gateway_id      = module.nat_gateway.nat_gateway_id
+  route_table_tags    = var.route_table_tags
 }
