@@ -13,8 +13,10 @@ Before you begin, ensure y the following installed and configured:
 2.  Terraform: Version 1.5.x or later.
 3.  Git: For source code management.
 
-## ProjectStructure:
+## Project Structure
 
+```text
+.
 ├── README.md
 ├── app/
 │   ├── Dockerfile
@@ -48,11 +50,8 @@ Before you begin, ensure y the following installed and configured:
 │       ├── main.tf
 │       ├── outputs.tf
 │       └── variables.tf
-├── main.tf                # Root Terraform file calling individual modules
-├── variables.tf           # Variable declarations for root module
-├── dev.tfvars             # Variable values for the dev environment
-├── backend.tfvars         # Terraform backend settings (S3, DynamoDB)
-└── outputs.tf             # Root module output values
+├── main.tf          # Root Terraform file calling individual modules
+├── variables.tf     # Variable declaration
 
 
 
