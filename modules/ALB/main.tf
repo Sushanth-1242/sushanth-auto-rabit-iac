@@ -133,6 +133,7 @@ resource "aws_launch_template" "main" {
   image_id      = var.ami_id
   instance_type = var.instance_type
   key_name      = var.key_name
+  user_data = filebase64("${path.module}/userdata.sh")
 
   iam_instance_profile {
     name = var.instance_profile  # Reference IAM instance profile from IAM module
