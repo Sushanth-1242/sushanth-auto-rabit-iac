@@ -1,6 +1,9 @@
 #Project Title : Project Title:
 Automated Web Application Deployment Using Terraform and AWS CI/CD Stack
 
+## Deployed Application Ip: 3.226.241.100
+## load balancer : http://us-east-1-dev-alb-01-651961241.us-east-1.elb.amazonaws.com/
+
 ##ProjectOverview
 This project provides a complete CI/CD pipeline setup to deploy a containerized Flask web application to an Auto Scaling Group of EC2 instances behind an Application Load Balancer on AWS.
 The infrastructure is provisioned using Terraform, and the deployment is managed by AWS CodeBuild and CodeDeploy.
