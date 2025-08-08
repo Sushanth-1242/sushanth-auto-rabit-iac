@@ -1,8 +1,8 @@
 version: 0.0
 os: linux
 files:
-  - source: /scripts/
-    destination: /home/ec2-user/scripts
+  - source: /src
+    destination: /home/ec2-user
 file_exists_behaviour: OVERWRITE
 permissions:
 - object: /home/ec2-user/scripts
