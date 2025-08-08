@@ -5,7 +5,7 @@ resource "aws_instance" "my_instance" {
   vpc_security_group_ids   = var.security_group_ids
   subnet_id                = var.subnet_id
   associate_public_ip_address = true
-
+  user_data = file("userdata.sh")
   tags = {
     Name = var.instance_name
   }
