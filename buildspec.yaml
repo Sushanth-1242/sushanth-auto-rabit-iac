@@ -3,7 +3,7 @@ version: 0.2
 env:
   shell: bash
   variables:
-    TF_APPLY_ACTION: "apply"
+    TF_APPLY_ACTION: "destroy"
     AWS_DEFAULT_REGION: "us-east-1"
 
 phases:

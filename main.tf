@@ -5,11 +5,11 @@ module "application_load_balancer" {
   source = "./modules/ALB"
 
   # ALB Configuration
-  alb_name               = "${var.aws_region}-${var.environment}-alb-01"
-  vpc_id                 = module.vpc.vpc_id
-  public_subnet_ids      = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]
-  private_subnet_ids     = [module.vpc.private_subnet_1_id]  # Updated with the correct VPC module
-  instance_profile       = module.iam.instance_profile.name
+  alb_name                   = "${var.aws_region}-${var.environment}-alb-01"
+  vpc_id                     = module.vpc.vpc_id
+  public_subnet_ids          = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]
+  private_subnet_ids         = [module.vpc.private_subnet_1_id] # Updated with the correct VPC module
+  instance_profile           = module.iam.instance_profile.name
   enable_deletion_protection = false
 
   # Target Group Configuration
@@ -19,35 +19,35 @@ module "application_load_balancer" {
 
   # Health Check Configuration
   health_check_path                = "/"
-  health_check_interval           = 30
-  health_check_timeout            = 5
-  health_check_healthy_threshold  = 2
+  health_check_interval            = 30
+  health_check_timeout             = 5
+  health_check_healthy_threshold   = 2
   health_check_unhealthy_threshold = 2
-  health_check_matcher            = "200"
+  health_check_matcher             = "200"
 
   # Listener Configuration
   listener_port     = 80
   listener_protocol = "HTTP"
 
   # Auto Scaling Group Configuration
-  asg_name            = "${var.aws_region}-${var.environment}-asg-01"
-  ami_id              = var.ami_id
-  instance_type       = var.instance_type
-  key_name            = var.key_name
+  asg_name      = "${var.aws_region}-${var.environment}-asg-01"
+  ami_id        = var.ami_id
+  instance_type = var.instance_type
+  key_name      = var.key_name
 
   # ASG Sizing
-  asg_min_size         = 2
-  asg_max_size         = 4
-  asg_desired_capacity = 2
+  asg_min_size              = 2
+  asg_max_size              = 4
+  asg_desired_capacity      = 2
   health_check_grace_period = 300
 
-  allow_ssh        = true
-  ssh_cidr_blocks  = ["0.0.0.0/0"]
+  allow_ssh       = true
+  ssh_cidr_blocks = ["0.0.0.0/0"]
 
   # Auto Scaling Policies
   enable_auto_scaling_policies = true
-  scale_up_cpu_threshold      = 70
-  scale_down_cpu_threshold    = 30
+  scale_up_cpu_threshold       = 70
+  scale_down_cpu_threshold     = 30
 
   # Tags
   tags = var.tags
@@ -57,19 +57,19 @@ module "application_load_balancer" {
 
 
 module "vpc" {
-  source = "./modules/VPC"
-  subnet_tags         = var.subnet_tags
-  vpc_name            = "${var.aws_region}-${var.environment}-vpc-01"
-  cidr_block          = var.vpc_cidr_block
-  azs                 = var.azs
-  subnet_cidr_blocks  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]  # Ensure these CIDRs don't overlap
-  vpc_tags            = var.tags
+  source             = "./modules/VPC"
+  subnet_tags        = var.subnet_tags
+  vpc_name           = "${var.aws_region}-${var.environment}-vpc-01"
+  cidr_block         = var.vpc_cidr_block
+  azs                = var.azs
+  subnet_cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"] # Ensure these CIDRs don't overlap
+  vpc_tags           = var.tags
 }
 
 module "security_groups" {
-  source          = "./modules/SecurityGroup"
-  vpc_id          = module.vpc.vpc_id
-  sg_name_prefix  = ["bia-Frontend-web-SG-prod-01", "Bia-backend-SG-01-Prod-01"]
+  source         = "./modules/SecurityGroup"
+  vpc_id         = module.vpc.vpc_id
+  sg_name_prefix = ["bia-Frontend-web-SG-prod-01", "Bia-backend-SG-01-Prod-01"]
 
   ingress_rules = [
     [
@@ -120,25 +120,25 @@ module "security_groups" {
 #}
 
 module "internet_gateway" {
-  source = "./modules/IGW"
-  vpc_id             = module.vpc.vpc_id
+  source                = "./modules/IGW"
+  vpc_id                = module.vpc.vpc_id
   internet_gateway_name = "${var.aws_region}-${var.environment}-igw-01"
-  igw_tags           = var.tags
+  igw_tags              = var.tags
 }
 
 module "nat_gateway" {
-  source = "./modules/NAT"
-  vpc_id             = module.vpc.vpc_id
-  subnet_id          = module.vpc.public_subnet_id # Public subnet for NAT
-  nat_gateway_name   = "${var.aws_region}-${var.environment}-nat-01"
-  nat_gateway_tags   = var.tags
+  source           = "./modules/NAT"
+  vpc_id           = module.vpc.vpc_id
+  subnet_id        = module.vpc.public_subnet_id # Public subnet for NAT
+  nat_gateway_name = "${var.aws_region}-${var.environment}-nat-01"
+  nat_gateway_tags = var.tags
 }
 
 module "route_tables" {
-  source = "./modules/RouteTable"
+  source              = "./modules/RouteTable"
   vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id]  # Reference to public subnet IDs
-  private_subnet_ids  = [module.vpc.private_subnet_1_id]  # Reference to private subnet IDs
+  public_subnet_ids   = [module.vpc.public_subnet_id, module.vpc.public_subnet_2_id] # Reference to public subnet IDs
+  private_subnet_ids  = [module.vpc.private_subnet_1_id]                             # Reference to private subnet IDs
   internet_gateway_id = module.internet_gateway.internet_gateway_id
   nat_gateway_id      = module.nat_gateway.nat_gateway_id
   route_table_tags    = var.route_table_tags
