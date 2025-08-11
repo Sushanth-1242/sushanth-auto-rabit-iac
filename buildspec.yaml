@@ -29,7 +29,7 @@ phases:
       - echo "Initializing Terraform..."
       - terraform init -backend-config=backend.tfvars -input=false
       - echo "Running Terraform changes..."
-      - terraform apply --auto-approve -var-file=dev.tfvars
+      - terraform destroy --auto-approve -var-file=dev.tfvars
       - echo "Terraform changes completed successfully!"
 
   post_build:
